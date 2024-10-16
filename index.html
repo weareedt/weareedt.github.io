@@ -4,39 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Audio Visualizer</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: black;
-        }
-        canvas {
-            display: block;
-        }
-        button {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            z-index: 2;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
 </head>
 <body>
-    <button id="start">Start </button>
-    
+    <button id="start">Start</button>
+    <div id="chat-frame">
+        <button id="toggle-frame">Open Chat</button>
+        <div id="chat-content" class="hidden">
+            <button id="clear-chat">Clear Chat</button> <!-- Clear Chat button -->
+            <button id="start-recording">Start Recording</button>
+            <button id="stop-recording" disabled>Stop Recording</button>
+            <div id="recording-status" style="color: red; display: none;">Recording...</div>
+            <div id="chat-output"></div>
+            <div id="transcription-output"></div>
+            <input type="text" id="user-input" placeholder="Type your message here">
+            <button id="send-message">Send</button>
+            <div id="chat-output"></div>
+        </div>
+    </div>
     <!-- Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r110/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dat.gui/build/dat.gui.min.js"></script>
-    <script type="module" src="scripts.js"></script>
+    <script type="module" src="scripts.js"></script> <!-- Link to JavaScript -->
+    <script type="module" src="chatbot.js"></script> 
 </body>
 </html>
