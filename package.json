@@ -2,7 +2,6 @@
   "name": "audiovisualizer",
   "version": "1.0.0",
   "description": "How To Create A 3D Audio Visualizer Using Three.js https://youtu.be/qDIF2z_VtHs",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
