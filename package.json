@@ -9,8 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "dat.gui": "^0.7.9",
-    "three": "^0.158.0"
+    "three": "^0.158.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@parcel/config-default": "^2.4.0",

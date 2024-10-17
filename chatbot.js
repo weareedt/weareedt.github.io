@@ -1,8 +1,9 @@
 let mediaRecorder;
 const audioChunks = [];
-const apiKey = 'api_key';
+const apiKey = 'apiKey'; // Replace with your actual OpenAI API key
 const chatApiUrl = 'https://api.openai.com/v1/chat/completions';
 const transcriptionApiUrl = 'https://api.openai.com/v1/audio/transcriptions';
+const ttsApiUrl = 'https://api.openai.com/v1/audio/speech'; // Text-to-Speech endpoint
 
 document.getElementById('toggle-frame').addEventListener('click', () => {
     const chatContent = document.getElementById('chat-content');
@@ -14,57 +15,57 @@ document.getElementById('toggle-frame').addEventListener('click', () => {
 let recordingText = document.getElementById('recording-status');
 
 document.getElementById('start-recording').addEventListener('click', async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
 
-  mediaRecorder.start();
-  document.getElementById('start-recording').disabled = true;
-  document.getElementById('stop-recording').disabled = false;
-  
-  // Show recording status
-  recordingText.style.display = 'block';
+    mediaRecorder.start();
+    document.getElementById('start-recording').disabled = true;
+    document.getElementById('stop-recording').disabled = false;
 
-  console.log("Starting recording...");
+    // Show recording status
+    recordingText.style.display = 'block';
 
-  mediaRecorder.ondataavailable = event => {
-      audioChunks.push(event.data);
-  };
+    console.log("Starting recording...");
 
-  mediaRecorder.onstop = async () => {
-      console.log("Recording stopped.");
-      recordingText.style.display = 'none';
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-      const formData = new FormData();
-      formData.append('file', audioBlob, 'audio.wav');
-      formData.append('model', 'whisper-1'); // Use the Whisper model for transcription
+    mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+    };
 
-      try {
-          const response = await fetch(transcriptionApiUrl, {
-              method: 'POST',
-              headers: {
-                  'Authorization': `Bearer ${apiKey}`
-              },
-              body: formData
-          });
+    mediaRecorder.onstop = async () => {
+        console.log("Recording stopped.");
+        recordingText.style.display = 'none';
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'audio.wav');
+        formData.append('model', 'whisper-1'); // Use the Whisper model for transcription
 
-          console.log("Transcription response:", response);
+        try {
+            const response = await fetch(transcriptionApiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: formData
+            });
 
-          if (!response.ok) throw new Error('Error transcribing audio: ' + response.statusText);
-          const transcription = await response.json();
-          console.log("Transcription result:", transcription.text);
+            console.log("Transcription response:", response);
 
-          appendMessage('You: ' + transcription.text);
-          await sendMessageToBot(transcription.text); // Send transcription to bot
+            if (!response.ok) throw new Error('Error transcribing audio: ' + response.statusText);
+            const transcription = await response.json();
+            console.log("Transcription result:", transcription.text);
 
-      } catch (error) {
-          console.error(error);
-          appendMessage('Error: ' + error.message);
-      }
+            appendMessage('You: ' + transcription.text);
+            await sendMessageToBot(transcription.text); // Send transcription to bot
 
-      audioChunks.length = 0;
-      document.getElementById('start-recording').disabled = false;
-      document.getElementById('stop-recording').disabled = true;
-  };
+        } catch (error) {
+            console.error(error);
+            appendMessage('Error: ' + error.message);
+        }
+
+        audioChunks.length = 0;
+        document.getElementById('start-recording').disabled = false;
+        document.getElementById('stop-recording').disabled = true;
+    };
 });
 
 document.getElementById('clear-chat').addEventListener('click', () => {
@@ -103,7 +104,46 @@ async function sendMessageToBot(message) {
 
         if (!response.ok) throw new Error('Error fetching chat response: ' + response.statusText);
         const chatResponse = await response.json();
-        appendMessage('Bot: ' + chatResponse.choices[0].message.content); // Adjust based on actual response structure
+        const botMessage = chatResponse.choices[0].message.content;
+        appendMessage('Bot: ' + botMessage); // Adjust based on actual response structure
+
+        // Call Text-to-Speech after receiving bot response
+        await convertTextToSpeech(botMessage);
+
+    } catch (error) {
+        console.error(error);
+        appendMessage('Error: ' + error.message);
+    }
+}
+
+// Text-to-Speech function using OpenAI API
+async function convertTextToSpeech(text) {
+    const ttsData = {
+        model: 'tts-1', // TTS model
+        input: text, // Text to convert to speech
+        voice: 'alloy', // Voice to use for TTS, choose from available options
+        response_format: 'mp3' // Audio format (optional, default is mp3)
+    };
+
+    try {
+        const response = await fetch(ttsApiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(ttsData)
+        });
+
+        if (!response.ok) throw new Error('Error generating speech: ' + response.statusText);
+        
+        const audioBlob = await response.blob(); // Get the audio as a blob
+        const audioUrl = URL.createObjectURL(audioBlob); // Create a URL for the audio
+        const audioElement = new Audio(audioUrl); // Create an audio element
+        audioElement.play(); // Play the audio
+
+        console.log("TTS Audio played successfully!");
+
     } catch (error) {
         console.error(error);
         appendMessage('Error: ' + error.message);

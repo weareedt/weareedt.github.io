@@ -8,10 +8,12 @@
 </head>
 <body>
     <button id="start">Start</button>
+    
+    <!-- Chat Frame for Chatbot -->
     <div id="chat-frame">
         <button id="toggle-frame">Open Chat</button>
         <div id="chat-content" class="hidden">
-            <button id="clear-chat">Clear Chat</button> <!-- Clear Chat button -->
+            <button id="clear-chat">Clear Chat</button>
             <button id="start-recording">Start Recording</button>
             <button id="stop-recording" disabled>Stop Recording</button>
             <div id="recording-status" style="color: red; display: none;">Recording...</div>
@@ -19,13 +21,23 @@
             <div id="transcription-output"></div>
             <input type="text" id="user-input" placeholder="Type your message here">
             <button id="send-message">Send</button>
-            <div id="chat-output"></div>
         </div>
     </div>
+
+    <!-- New Chat Frame for Speech-to-Speech -->
+    <div id="speech-chat-frame">
+        <button id="start-speech">Start Speech-to-Speech</button>
+        <div id="speech-chat-content" class="hidden">
+            <div id="speech-chat-output"></div>
+            <input type="text" id="speech-user-input" placeholder="Say something...">
+        </div>
+    </div>
+
     <!-- Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r110/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dat.gui/build/dat.gui.min.js"></script>
     <script type="module" src="scripts.js"></script> <!-- Link to JavaScript -->
     <script type="module" src="chatbot.js"></script> 
+    <script type="module" src="speechbot.js"></script> <!-- New speechbot.js file -->
 </body>
 </html>
