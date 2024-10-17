@@ -53,9 +53,76 @@ const shaderMaterial = new THREE.ShaderMaterial({
 });
 
 // === Create the Icosahedron Geometry ===
-const geometry = new THREE.IcosahedronGeometry(1, 2);  // Icosahedron geometry
-const sphere = new THREE.Mesh(geometry, shaderMaterial);
-scene.add(sphere);  // Add the object to the scene
+const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 2);  // Icosahedron geometry
+const icosahedron = new THREE.Mesh(icosahedronGeometry, shaderMaterial);
+scene.add(icosahedron);  // Add the icosahedron to the scene
+
+// === Create a Sharp Crescent  ===
+function createCrescent() {
+    const crescentShape = new THREE.Shape();
+
+    const outerRadius = 1;  // Larger radius for outer arc to make the crescent sharper
+    const innerRadius = 0.5;  // Smaller radius for inner arc to create sharper points
+
+    // Define the arc's starting angle and length to point upwards naturally
+    const thetaStart = Math.PI * 1.25;  // Start angle for outer arc
+    const thetaLength = Math.PI * 1.75;  // Length of arc to make a sharp crescent
+
+    // Create the outer arc of the crescent
+    crescentShape.absarc(0, 0, outerRadius, thetaStart, thetaLength, false);
+
+    // Create the inner arc to subtract from the outer arc
+    const holePath = new THREE.Path();
+    holePath.absarc(0.3, 0, innerRadius, thetaStart, thetaLength, false);
+    crescentShape.holes.push(holePath);
+
+    // Create the geometry and material for the crescent
+    const crescentGeometry = new THREE.ShapeGeometry(crescentShape);
+    const crescentMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
+    const crescent = new THREE.Mesh(crescentGeometry, crescentMaterial);
+
+    // No rotation is applied here, as the crescent will naturally point upwards
+    return crescent;
+}
+
+// === Create the Star ===
+function create14PointStar() {
+    const starShape = new THREE.Shape();
+    const spikes = 14;  // 14 vertices -> 7 outer spikes and 7 inner vertices
+    const outerRadius = 0.4;
+    const innerRadius = 0.2;
+    const step = (Math.PI * 2) / (spikes * 2);  // Calculate step for 14 points (7 spikes)
+
+    // Loop through 14 points, alternating between outer and inner radius
+    for (let i = 0; i < spikes * 7; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = i * step;
+        starShape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+    }
+
+    starShape.closePath();  // Close the shape to ensure the star is complete
+
+    const starGeometry = new THREE.ShapeGeometry(starShape);
+    const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
+    const star = new THREE.Mesh(starGeometry, starMaterial);
+
+    star.rotation.x = Math.PI / 1;  // Rotate to align properly in 3D space
+    return star;
+}
+
+// === Create and Position the Star and Crescent ===
+const crescent = createCrescent();
+const star = create14PointStar();
+
+// Position the star above the crescent
+star.position.set(0.04, 0.4, 0);  // Adjust Y to position the star above the crescent
+
+// Position the crescent below the star (no rotation applied)
+crescent.position.set(0.04, 0.5, 0);
+
+// Add both to the scene
+scene.add(crescent);
+scene.add(star);
 
 // === Audio Setup ===
 const listener = new THREE.AudioListener();
@@ -114,15 +181,18 @@ function animate() {
         requestAnimationFrame(animate);
 
         // Update time uniform for shader
-        shaderMaterial.uniforms.u_time.value += 0.07;  // Adjust this value for wave speed
+        shaderMaterial.uniforms.u_time.value += 0.06;  // Adjust this value for wave speed
 
         // Get frequency data from the audio analyzer
         const dataArray = analyser.getFrequencyData();
 
-        // Use the frequency data to scale the sphere (for a basic visual effect)
+        // Use the frequency data to scale the icosahedron (for a basic visual effect)
         const averageFrequency = analyser.getAverageFrequency();
         const scale = 1 + averageFrequency / 128;  // Scale factor based on average frequency
-        sphere.scale.set(scale, scale, scale);  // Apply the scaling
+        icosahedron.scale.set(scale, scale, scale);  // Apply the scaling to the icosahedron
+
+        // Rotate the star for some animation effect (crescent remains static)
+        star.rotation.z += 0.01;
 
         // Render the scene
         renderer.render(scene, camera);
